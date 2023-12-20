@@ -1,13 +1,12 @@
-(ns batalha-naval2.0.teste2
- (:require [clojure.java.io :as io]))
+(ns batalha-naval2.0.teste2)
 
 (defrecord Jogo [tabuleiro recorde])
 
 (def recorde-atom (atom nil))
 
 (defn posicao-valida? [linha coluna]
-  (and (>= linha 0) (< linha 5)
-       (>= coluna 0) (< coluna 5)))
+  (and (>= linha 0) (< linha 4)
+       (>= coluna 0) (< coluna 4)))
 
 (defn inicializar-tabuleiro []
   (vec (repeat 4 (vec (repeat 4 \~)))))
@@ -31,8 +30,8 @@
        (let [posicao (get-in tabuleiro [linha coluna])]
          (not (or (= posicao :encontrado) (= posicao nil) (= posicao \*))))))
 
-(defn algum-navio-encontrado? [tabuleiro num-barcos]
-  (>= (count (filter #(= :encontrado %) (apply concat tabuleiro))) num-barcos))
+(defn algum-navio-encontrado? [tabuleiro num-navios]
+  (>= (count (filter #(= :encontrado %) (apply concat tabuleiro))) num-navios))
 
 (defn formatted-time [time]
   (quot time 1000))
@@ -44,14 +43,13 @@
         quebrou-recorde? (or (< jogadas jogadas-recorde)
                              (and (= jogadas jogadas-recorde)
                                   (< tempo tempo-recorde)))]
-    (println "Recorde Atual: Jogadas: " jogadas-recorde ", Tempo: " (formatted-time tempo-recorde))
+    (println "Recorde Anterior: Jogadas: " jogadas-recorde ", Tempo: " (formatted-time tempo-recorde))
     (when quebrou-recorde?
-      (reset! recorde-atom novo-recorde)
-      (println "Recorde Quebrado! Novo recorde: Jogadas: " jogadas ", Tempo: " (formatted-time tempo)))
+      (reset! recorde-atom novo-recorde))
     (if quebrou-recorde? novo-recorde recorde)))
 
 (defn jogo-concluido [tabuleiro jogadas]
-  (println "Parabéns! Você encontrou um navio!")
+  (println "Parabéns! Você encontrou os navios!")
   (let [tempo-jogo (System/currentTimeMillis)
         recorde (deref recorde-atom)
         novo-recorde (atualizar-recorde recorde jogadas tempo-jogo)
@@ -61,7 +59,7 @@
     (println mensagem-recorde)
     (imprimir-tabuleiro tabuleiro)
     (println "Jogo Concluído!")
-    (println "Recorde Atual: Jogadas: " (:jogadas novo-recorde) ", Tempo: " (formatted-time (:tempo novo-recorde)))))
+    (println "Recorde Atual : Jogadas: " (:jogadas novo-recorde) ", Tempo: " (formatted-time (:tempo novo-recorde)))))
 
 (defn jogo-loop [jogadas tabuleiro num-navios-vitoria]
   (loop [jogadas jogadas
@@ -103,7 +101,7 @@
   (println "OBS: O índice das linhas e das colunas inicia em 0.")
 
   (let [tabuleiro-inicial (inicializar-tabuleiro)
-        num-navios 5
+        num-navios 2
         num-navios-vitoria 2
         tabuleiro-com-navios (posicionar-navios-aleatorios tabuleiro-inicial num-navios)
         estado-inicial {:tabuleiro tabuleiro-com-navios :encerrado false :jogadas 0 :num-navios-vitoria num-navios-vitoria}]
