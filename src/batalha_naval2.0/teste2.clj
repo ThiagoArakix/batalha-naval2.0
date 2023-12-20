@@ -1,13 +1,13 @@
-(ns batalha-naval.teste2
-  (:require [clojure.java.io :as io]))
+(ns batalha-naval2.0.teste2
+ (:require [clojure.java.io :as io]))
 
 (defrecord Jogo [tabuleiro recorde])
 
 (def recorde-atom (atom nil))
 
 (defn posicao-valida? [linha coluna]
-  (and (>= linha 0) (< linha 4)
-       (>= coluna 0) (< coluna 4)))
+  (and (>= linha 0) (< linha 5)
+       (>= coluna 0) (< coluna 5)))
 
 (defn inicializar-tabuleiro []
   (vec (repeat 4 (vec (repeat 4 \~)))))
@@ -31,9 +31,8 @@
        (let [posicao (get-in tabuleiro [linha coluna])]
          (not (or (= posicao :encontrado) (= posicao nil) (= posicao \*))))))
 
-(defn algum-navio-encontrado? [tabuleiro]
-  (some #(= :encontrado %) (apply concat tabuleiro)))
-
+(defn algum-navio-encontrado? [tabuleiro num-barcos]
+  (>= (count (filter #(= :encontrado %) (apply concat tabuleiro))) num-barcos))
 
 (defn formatted-time [time]
   (quot time 1000))
@@ -64,8 +63,7 @@
     (println "Jogo Concluído!")
     (println "Recorde Atual: Jogadas: " (:jogadas novo-recorde) ", Tempo: " (formatted-time (:tempo novo-recorde)))))
 
-
-(defn jogo-loop [jogadas tabuleiro]
+(defn jogo-loop [jogadas tabuleiro num-navios-vitoria]
   (loop [jogadas jogadas
          tabuleiro tabuleiro]
     (let [tabuleiro-visual (vec (for [linha tabuleiro]
@@ -73,7 +71,7 @@
       (println "\nJogadas: " jogadas)
       (imprimir-tabuleiro tabuleiro-visual)
 
-      (if (algum-navio-encontrado? tabuleiro)
+      (if (algum-navio-encontrado? tabuleiro num-navios-vitoria)
         (do
           (jogo-concluido tabuleiro jogadas)
           {:tabuleiro tabuleiro :encerrado true})
@@ -99,19 +97,20 @@
 
 (defn jogar-batalha-naval []
   (println "Bem-vindo ao Jogo de Batalha Naval!")
-  (println "Objetivo: Encontrar pelo menos um navio em menos jogadas e menos tempo.")
+  (println "Objetivo: Encontrar os navios em menos jogadas e menos tempo.")
   (println "Para desistir, digite 'desistir'.")
   (println "Para fazer uma jogada, digite as coordenadas no formato 'linha coluna'. Exemplo: '1 2'.\n")
-  (println "OBS: O indice das linhas e das colunas inicia em 0.")
+  (println "OBS: O índice das linhas e das colunas inicia em 0.")
 
   (let [tabuleiro-inicial (inicializar-tabuleiro)
-        num-navios 1
+        num-navios 5
+        num-navios-vitoria 2
         tabuleiro-com-navios (posicionar-navios-aleatorios tabuleiro-inicial num-navios)
-        estado-inicial {:tabuleiro tabuleiro-com-navios :encerrado false :jogadas 0}] 
+        estado-inicial {:tabuleiro tabuleiro-com-navios :encerrado false :jogadas 0 :num-navios-vitoria num-navios-vitoria}]
     (loop [estado estado-inicial]
       (if (:encerrado estado)
         (do
           (println "Jogo encerrado. Até a próxima!")
           (recur estado-inicial))
-        (let [novo-estado (jogo-loop (:jogadas estado) (:tabuleiro estado))]
-          (recur (assoc novo-estado :jogadas (inc (:jogadas novo-estado))))))))) 
+        (let [novo-estado (jogo-loop (:jogadas estado) (:tabuleiro estado) (:num-navios-vitoria estado))]
+          (recur (assoc novo-estado :jogadas (inc (:jogadas novo-estado)))))))))
